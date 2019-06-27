@@ -73,13 +73,22 @@ def generateMap():
 
 # Check if our player file exists
 def verifyPlayer():
-    # Check path
-    if not os.path.exists(PLAYER):
-        print('[!] Missing Player.dat.')
-        return False
+    # Scan working directory for a player file
+    found = False
+    for f in os.listdir():
+        ext = f.split('.')
+        if ext[-1] == 'dat':
+            PLAYER = f
+            found = True
+            break
+
+    # No player file found
+    if not found:
+        print('[!] Cannot find a player file!')
+        exit(1)
 
     # Found
-    print('[*] Found Player.dat.')
+    print('[*] Found player file "%s".' % PLAYER)
     return True
 
 # Parse data chunk from player data
