@@ -6,7 +6,7 @@ import struct
 HEX_OFFSET_PLAYER_INIT = 0x1dc
 HEX_OFFSET_PLAYER_END = 0x383
 HEX_OFFSET_HOT_INIT = 0x80
-HEX_OFFSET_HOT_END = 0xEF
+HEX_OFFSET_HOT_END = 0xef
 ENGLISH_JSON = 'english.json'
 MAP = 'map'
 PLAYER = 'Player.dat'
