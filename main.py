@@ -11,7 +11,6 @@ HEX_OFFSET_HOT_END = 0xef
 ENGLISH_JSON = 'english.json'
 MAP = 'map'
 PLAYER = 'Player.dat'
-NEW_PLAYER = 'New.dat'
 
 KEY_TREASURES = 'treasures'
 KEY_ID = 'id'
@@ -132,11 +131,14 @@ def generatePlayerMap():
 
 # Write data to player file
 def writePlayerFile():
-     # Prepare to update player file
-    f = open(NEW_PLAYER, 'wb')
+    # Backup player data
+    player = readPlayerFile()
+
+    # Prepare to update player file
+    f = open(PLAYER, 'wb')
 
     # Duplicate player file
-    f.write(readPlayerFile())
+    f.write(player)
 
     # Seek to inventory data
     f.seek(HEX_OFFSET_PLAYER_INIT)
@@ -229,7 +231,7 @@ def main():
 
     # Write player map
     writePlayerFile()
-    print("[*] New player file written.")
+    print("[*] Player file written.")
 
 # Start the program
 main()
