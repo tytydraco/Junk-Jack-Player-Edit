@@ -77,6 +77,7 @@ def verifyPlayer():
     for f in os.listdir():
         ext = f.split('.')
         if ext[-1] == 'dat':
+            global PLAYER
             PLAYER = f
             found = True
             break
