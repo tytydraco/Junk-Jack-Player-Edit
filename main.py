@@ -7,9 +7,11 @@ HEX_OFFSET_PLAYER_INIT = 0x1dc
 HEX_OFFSET_PLAYER_END = 0x383
 HEX_OFFSET_HOT_INIT = 0x80
 HEX_OFFSET_HOT_END = 0xef
+
 ENGLISH_JSON = 'english.json'
 MAP = 'map'
 PLAYER = 'Player.dat'
+NEW_PLAYER = 'New.dat'
 
 KEY_TREASURES = 'treasures'
 KEY_ID = 'id'
@@ -19,6 +21,12 @@ KEY_NAME = 'name'
 itemMap = {}
 playerMap = []
 hotMap = []
+
+def playerSlotToPos(slot):
+    return HEX_OFFSET_PLAYER_INIT + (12 * slot)
+
+def hotSlotToPos(slot):
+    return HEX_OFFSET_HOT_INIT + (12 * slot)
 
 # Check if our item map exists
 def verifyEnglishJSON():
@@ -75,6 +83,7 @@ def verifyPlayer():
     print('[*] Found Player.dat.')
     return True
 
+# Parse data chunk from player data
 def parseLittleEndian(data, i):
     # Parse item ID with little endian hex (1 byte)
     _id = struct.unpack('<h', data[i : i + 2])[0]
@@ -88,6 +97,7 @@ def parseLittleEndian(data, i):
 
     return (_id, _amount)
 
+# Read player file
 def readPlayerFile():
     # Ensure existence
     if not verifyPlayer():
@@ -101,6 +111,7 @@ def readPlayerFile():
     # Return our buffer
     return data
 
+# Map out player data
 def generatePlayerMap():
     # Fetch the Player data
     data = readPlayerFile()
@@ -119,14 +130,106 @@ def generatePlayerMap():
         hotMap.append([_id, _amount])
         print('[*] Appended entry "%s" [%d] : %s' % (itemMap[_id], _id, _amount))
 
+# Write data to player file
+def writePlayerFile():
+     # Prepare to update player file
+    f = open(NEW_PLAYER, 'wb')
+
+    # Duplicate player file
+    f.write(readPlayerFile())
+
+    # Seek to inventory data
+    f.seek(HEX_OFFSET_PLAYER_INIT)
+
+    # Write inventory
+    mapIndex = 0
+    for i in range(HEX_OFFSET_PLAYER_INIT, HEX_OFFSET_PLAYER_END, 12):
+        # Loop sequentially
+        _id = playerMap[mapIndex][0]
+        _amount = playerMap[mapIndex][1]
+        mapIndex += 1
+
+        # Convert to little endian
+        _raw_id = struct.pack('<h', _id)
+        _raw_amount = struct.pack('<h', _amount)
+
+        # Write to player data
+        f.seek(i)
+        f.write(_raw_id)
+        f.seek(i + 2)
+        f.write(_raw_amount)
+
+        print('[*] Wrote "%s" [%s] : %s' % (itemMap[_id], _raw_id, _raw_amount))
+
+    # Write hotbar
+    mapIndex = 0
+    for i in range(HEX_OFFSET_HOT_INIT, HEX_OFFSET_HOT_END, 12):
+        # Loop sequentially
+        _id = hotMap[mapIndex][0]
+        _amount = hotMap[mapIndex][1]
+        mapIndex += 1
+
+        # Convert to little endian
+        _raw_id = struct.pack('<h', _id)
+        _raw_amount = struct.pack('<h', _amount)
+
+        # Write to player data
+        f.seek(i)
+        f.write(_raw_id)
+        f.seek(i + 2)
+        f.write(_raw_amount)
+        print('[*] Wrote entry "%s" [%s] : %s' % (itemMap[_id], _raw_id, _raw_amount))
+
+    f.close()
+
+# Move items from hotbar slots 6-10 to empty player slots
+def mobileWork():
+    for i in range(6, 10):
+        # Loop sequentially
+        _id = hotMap[i][0]
+        _amount = hotMap[i][1]
+
+        # No need to move an empty slot
+        if _id is 0:
+            continue
+
+        # Scan for empty slots to utilize
+        foundEmpty = False
+        for j in range(0, len(playerMap)):
+            if playerMap[j][0] is 0:
+                playerMap[j][0] = _id
+                playerMap[j][1] = _amount
+                foundEmpty = True
+                break
+
+        # No empty slots. Abort!
+        if not foundEmpty:
+            print('[!] No empty slots left!')
+            return
+
+        # Clear emptied slots
+        hotMap[i][0] = 0
+        hotMap[i][1] = 0
+
+        print('[*] Moved "%s" [%s] : %s to inventory.' % (itemMap[_id], _id, _amount))
+
 # The main function
 def main():
     # Create a map of item IDs
     generateMap()
     print('[*] Item map generated.')
 
+    # Generate player map
     generatePlayerMap()
     print('[*] Player map generated.')
+
+    # Move last 4 hotbar items to inventory
+    mobileWork()
+    print('[*] Moved hotbar items for mobile compatibility.')
+
+    # Write player map
+    writePlayerFile()
+    print("[*] New player file written.")
 
 # Start the program
 main()
