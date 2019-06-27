@@ -200,11 +200,29 @@ def moveFromHotbarToPlayer(slotsRange):
             print('[!] No empty slots left!')
             return
 
+        # Give the items
+        playerMap[nextEmpty][0] = _id
+        playerMap[nextEmpty][1] = _amount
+
         # Clear emptied slots
         hotMap[i][0] = 0
         hotMap[i][1] = 0
 
         print('[*] Moved "%s" [%s] : %s to inventory.' % (itemMap[_id], _id, _amount))
+
+# Give the player an item
+def giveItem(_id, _amount):
+    # Scan for empty slots to utilize
+    nextEmpty = findEmptyInventorySlot()
+
+    # No empty slots. Abort!
+    if nextEmpty is -1:
+        print('[!] No empty slots left!')
+        return
+
+     # Give the items
+    playerMap[nextEmpty][0] = _id
+    playerMap[nextEmpty][1] = _amount
 
 # The main function
 def main():
@@ -225,6 +243,8 @@ def main():
     # Move last 4 hotbar items to inventory
     moveFromHotbarToPlayer(range(6,10))
     print('[*] Moved hotbar items for mobile compatibility.')
+
+    giveItem(4019, 4)
 
     # Write player map
     writePlayerFile()
