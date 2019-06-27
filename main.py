@@ -265,8 +265,8 @@ def main():
     print('[*] Moved hotbar items for mobile compatibility.')
 
     # Sort the inventory and hotbar
-    sortAll()
-    print('[*] Sorted inventory by ID.')
+    # sortAll()
+    # print('[*] Sorted inventory by ID.')
 
     # Write player map
     writePlayerFile()
