@@ -109,14 +109,14 @@ def generatePlayerMap():
     for i in range(HEX_OFFSET_PLAYER_INIT, HEX_OFFSET_PLAYER_END, 12):
         # Parse using little endian
         (_id, _amount) = parseLittleEndian(data, i)
-        playerMap[itemMap[_id]] = _amount
+        playerMap[_id] = _amount
         print('[*] Appended entry "%s" [%d] : %s' % (itemMap[_id], _id, _amount))
 
     # Loop over hex
     for i in range(HEX_OFFSET_HOT_INIT, HEX_OFFSET_HOT_END, 12):
         # Parse using little endian
         (_id, _amount) = parseLittleEndian(data, i)
-        hotMap[itemMap[_id]] = _amount
+        hotMap[_id] = _amount
         print('[*] Appended entry "%s" [%d] : %s' % (itemMap[_id], _id, _amount))
 
 # The main function
