@@ -226,6 +226,24 @@ def giveItem(_id, _amount):
 
     print('[*] Gave "%s" [%s] : %s to inventory.' % (itemMap[_id], _id, _amount))
 
+# Sort player and hotbar by ID
+def sortAll():
+    # Generic list sort
+    playerMap.sort()
+    hotMap.sort()
+
+    # Move empty player slots to the end
+    for i in range(len(playerMap)):
+        if playerMap[i][0] is 0:
+            temp = playerMap.pop(playerMap.index(playerMap[i]))
+            playerMap.append(temp)
+    
+    # Move empty hotbar slots to the end
+    for i in range(len(hotMap)):
+        if hotMap[i][0] is 0:
+            temp = hotMap.pop(hotMap.index(hotMap[i]))
+            hotMap.append(temp)
+
 # The main function
 def main():
     # Make sure player file exists
@@ -245,6 +263,10 @@ def main():
     # Move last 4 hotbar items to inventory
     moveFromHotbarToPlayer(range(6,10))
     print('[*] Moved hotbar items for mobile compatibility.')
+
+    # Sort the inventory and hotbar
+    sortAll()
+    print('[*] Sorted inventory by ID.')
 
     # Write player map
     writePlayerFile()
