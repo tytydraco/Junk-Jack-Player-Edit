@@ -34,6 +34,20 @@ def readFile(path, mode):
 
     return data
 
+# Parse data chunk from player data
+def parseLittleEndian(data, i):
+    # Parse item ID with little endian hex (1 byte)
+    _id = struct.unpack('<h', data[i : i + 2])[0]
+
+    # An empty slot is ID 0
+    if _id is -1:
+        _id = 0
+
+    # Parse item ID with little endian hex (2 bytes)
+    _amount = struct.unpack('<hh', data[i + 2 : i + 6])[0]
+
+    return (_id, _amount)
+
 # Check if our item map exists
 def verifyEnglishJSON():
     # Check path
@@ -44,23 +58,6 @@ def verifyEnglishJSON():
     # Found
     print('[*] Found english.json.')
     return True
-
-# Generate item map from english.json
-def generateMap():
-    # Fetch the JSON
-    english = readFile(ENGLISH_JSON, 'r')
-
-    # Parse the JSON
-    parse = json.loads(english)
-    treasures = parse[KEY_TREASURES]
-
-    # Create the map
-    for item in treasures:
-        _id = item[KEY_ID]
-        _name = item[KEY_NAME]
-
-        itemMap[_id] = _name
-        print('[*] Appended entry %d : %s' % (_id, _name))
 
 # Check if our player file exists
 def setPlayerFile():
@@ -83,19 +80,22 @@ def setPlayerFile():
     print('[*] Found player file "%s".' % PLAYER)
     return True
 
-# Parse data chunk from player data
-def parseLittleEndian(data, i):
-    # Parse item ID with little endian hex (1 byte)
-    _id = struct.unpack('<h', data[i : i + 2])[0]
+# Generate item map from english.json
+def generateMap():
+    # Fetch the JSON
+    english = readFile(ENGLISH_JSON, 'r')
 
-    # An empty slot is ID 0
-    if _id is -1:
-        _id = 0
+    # Parse the JSON
+    parse = json.loads(english)
+    treasures = parse[KEY_TREASURES]
 
-    # Parse item ID with little endian hex (2 bytes)
-    _amount = struct.unpack('<hh', data[i + 2 : i + 6])[0]
+    # Create the map
+    for item in treasures:
+        _id = item[KEY_ID]
+        _name = item[KEY_NAME]
 
-    return (_id, _amount)
+        itemMap[_id] = _name
+        print('[*] Appended entry %d : %s' % (_id, _name))
 
 # Map out player data
 def generatePlayerMap():
