@@ -173,9 +173,18 @@ def writePlayerFile():
 
     f.close()
 
+def findEmptyInventorySlot():
+    # Scan for empty slots to utilize
+    for i in range(0, len(playerMap)):
+        if playerMap[i][0] is 0:
+            return i
+
+    # No empty slots. Abort!
+    return -1
+
 # Move items from hotbar slots 6-10 to empty player slots
-def mobileWork():
-    for i in range(6, 10):
+def moveFromHotbarToPlayer(slotsRange):
+    for i in slotsRange:
         # Loop sequentially
         _id = hotMap[i][0]
         _amount = hotMap[i][1]
@@ -185,16 +194,10 @@ def mobileWork():
             continue
 
         # Scan for empty slots to utilize
-        foundEmpty = False
-        for j in range(0, len(playerMap)):
-            if playerMap[j][0] is 0:
-                playerMap[j][0] = _id
-                playerMap[j][1] = _amount
-                foundEmpty = True
-                break
+        nextEmpty = findEmptyInventorySlot()
 
         # No empty slots. Abort!
-        if not foundEmpty:
+        if nextEmpty is -1:
             print('[!] No empty slots left!')
             return
 
@@ -221,7 +224,7 @@ def main():
     print('[*] Player map generated.')
 
     # Move last 4 hotbar items to inventory
-    mobileWork()
+    moveFromHotbarToPlayer(range(6,10))
     print('[*] Moved hotbar items for mobile compatibility.')
 
     # Write player map
