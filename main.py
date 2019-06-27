@@ -266,7 +266,10 @@ def main():
 
     # Sort the inventory and hotbar
     # sortAll()
-    # print('[*] Sorted inventory by ID.')
+    
+    # Give the player an item
+    # ID: 256; Amount: 16
+    # giveItem(256, 16)
 
     # Write player map
     writePlayerFile()
