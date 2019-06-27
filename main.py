@@ -21,6 +21,9 @@ itemMap = {}
 playerMap = []
 hotMap = []
 
+mapData = ""
+playerData = ""
+
 def playerSlotToPos(slot):
     return HEX_OFFSET_PLAYER_INIT + (12 * slot)
 
@@ -83,10 +86,11 @@ def setPlayerFile():
 # Generate item map from english.json
 def generateMap():
     # Fetch the JSON
-    english = readFile(ENGLISH_JSON, 'r')
+    global mapData
+    mapData = readFile(ENGLISH_JSON, 'r')
 
     # Parse the JSON
-    parse = json.loads(english)
+    parse = json.loads(mapData)
     treasures = parse[KEY_TREASURES]
 
     # Create the map
@@ -100,32 +104,30 @@ def generateMap():
 # Map out player data
 def generatePlayerMap():
     # Fetch the Player data
-    data = readFile(PLAYER, 'rb')
+    global playerData
+    playerData = readFile(PLAYER, 'rb')
 
     # Loop over hex
     for i in range(HEX_OFFSET_PLAYER_INIT, HEX_OFFSET_PLAYER_END, 12):
         # Parse using little endian
-        (_id, _amount) = parseLittleEndian(data, i)
+        (_id, _amount) = parseLittleEndian(playerData, i)
         playerMap.append([_id, _amount])
         print('[*] Appended entry "%s" [%d] : %s' % (itemMap[_id], _id, _amount))
 
     # Loop over hex
     for i in range(HEX_OFFSET_HOT_INIT, HEX_OFFSET_HOT_END, 12):
         # Parse using little endian
-        (_id, _amount) = parseLittleEndian(data, i)
+        (_id, _amount) = parseLittleEndian(playerData, i)
         hotMap.append([_id, _amount])
         print('[*] Appended entry "%s" [%d] : %s' % (itemMap[_id], _id, _amount))
 
 # Write data to player file
 def writePlayerFile():
-    # Backup player data
-    player = readFile(PLAYER, 'rb')
-
     # Prepare to update player file
     f = open(PLAYER, 'wb')
 
     # Duplicate player file
-    f.write(player)
+    f.write(playerData)
 
     # Seek to inventory data
     f.seek(HEX_OFFSET_PLAYER_INIT)
