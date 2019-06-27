@@ -27,36 +27,28 @@ def playerSlotToPos(slot):
 def hotSlotToPos(slot):
     return HEX_OFFSET_HOT_INIT + (12 * slot)
 
+# Read and return file contents
+def readFile(path, mode):
+    with open(path, mode) as f:
+        data = f.read()
+
+    return data
+
 # Check if our item map exists
 def verifyEnglishJSON():
     # Check path
     if not os.path.exists(ENGLISH_JSON):
-        print('[!] Missing english.json.')
-        return False
+        print('[!] Cannot find english.json file!')
+        exit(1)
 
     # Found
     print('[*] Found english.json.')
     return True
 
-# Read english.json
-def readEnglishJSON():
-    # Ensure existence
-    if not verifyEnglishJSON():
-        print('[!] Please copy english.json from your game files to the working directory.')
-        exit(1)
-
-    # Read into a buffer
-    f = open(ENGLISH_JSON, 'r')
-    data = f.read()
-    f.close()
-
-    # Return our buffer
-    return data
-
 # Generate item map from english.json
 def generateMap():
     # Fetch the JSON
-    english = readEnglishJSON()
+    english = readFile(ENGLISH_JSON, 'r')
 
     # Parse the JSON
     parse = json.loads(english)
@@ -71,7 +63,7 @@ def generateMap():
         print('[*] Appended entry %d : %s' % (_id, _name))
 
 # Check if our player file exists
-def verifyPlayer():
+def setPlayerFile():
     # Scan working directory for a player file
     found = False
     for f in os.listdir():
@@ -105,24 +97,10 @@ def parseLittleEndian(data, i):
 
     return (_id, _amount)
 
-# Read player file
-def readPlayerFile():
-    # Ensure existence
-    if not verifyPlayer():
-        exit(1)
-    
-    # Read into a buffer
-    f = open(PLAYER, 'rb')
-    data = f.read()
-    f.close()
-
-    # Return our buffer
-    return data
-
 # Map out player data
 def generatePlayerMap():
     # Fetch the Player data
-    data = readPlayerFile()
+    data = readFile(PLAYER, 'rb')
 
     # Loop over hex
     for i in range(HEX_OFFSET_PLAYER_INIT, HEX_OFFSET_PLAYER_END, 12):
@@ -141,7 +119,7 @@ def generatePlayerMap():
 # Write data to player file
 def writePlayerFile():
     # Backup player data
-    player = readPlayerFile()
+    player = readFile(PLAYER, 'rb')
 
     # Prepare to update player file
     f = open(PLAYER, 'wb')
@@ -226,6 +204,12 @@ def mobileWork():
 
 # The main function
 def main():
+    # Make sure player file exists
+    setPlayerFile()
+
+    # Make sure english.json file exists
+    verifyEnglishJSON()
+
     # Create a map of item IDs
     generateMap()
     print('[*] Item map generated.')
