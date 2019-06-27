@@ -42,8 +42,7 @@ def verifyEnglishJSON():
 def readEnglishJSON():
     # Ensure existence
     if not verifyEnglishJSON():
-        # TODO: fetch from game files
-        # Temporarily abort
+        print('[!] Please copy english.json from your game files to the working directory.')
         exit(1)
 
     # Read into a buffer
