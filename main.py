@@ -99,7 +99,6 @@ def generateMap():
         _name = item[KEY_NAME]
 
         itemMap[_id] = _name
-        print('[*] Appended entry %d : %s' % (_id, _name))
 
 # Map out player data
 def generatePlayerMap():
