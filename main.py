@@ -149,7 +149,7 @@ def writePlayerFile():
         f.seek(i + 2)
         f.write(_raw_amount)
 
-        print('[*] Wrote "%s" [%s] : %s' % (itemMap[_id], _raw_id, _raw_amount))
+        print('[*] Wrote entry "%s" [%s] : %s' % (itemMap[_id], _raw_id, _raw_amount))
 
     # Write hotbar
     mapIndex = 0
@@ -224,6 +224,8 @@ def giveItem(_id, _amount):
     playerMap[nextEmpty][0] = _id
     playerMap[nextEmpty][1] = _amount
 
+    print('[*] Gave "%s" [%s] : %s to inventory.' % (itemMap[_id], _id, _amount))
+
 # The main function
 def main():
     # Make sure player file exists
@@ -243,8 +245,6 @@ def main():
     # Move last 4 hotbar items to inventory
     moveFromHotbarToPlayer(range(6,10))
     print('[*] Moved hotbar items for mobile compatibility.')
-
-    giveItem(4019, 4)
 
     # Write player map
     writePlayerFile()
