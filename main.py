@@ -21,7 +21,7 @@ write   - Write modified buffer to the player file.
 reload  - Scan and update the world and player data.
 mobile  - Move hotbar slots 6-10 to inventory for mobile transfer.
 sort    - Sort inventory and hotbar by ID.
-give    - Give the player [id] [amount].
+give    - Give the player [modifier] [id] [amount].
 done    - Exit the editor.
 """
 
@@ -237,7 +237,7 @@ def writePlayerFile():
 def findEmptyInventorySlot():
     # Scan for empty slots to utilize
     for i in range(0, len(playerMap)):
-        if playerMap[i][0] is 0:
+        if playerMap[i][3] is 0:
             return i
 
     # No empty slots. Abort!
@@ -288,8 +288,9 @@ def moveFromHotbarToPlayer(slotsRange):
         print('[*] Moved "%s" [%s] : %s to inventory.' % (itemMap[_id], _id, _amount))
 
 # Give the player an item
-def giveItem(_id, _amount):
+def giveItem(_modifier, _id, _amount):
     # Int checks and conversions
+    _modifier = int(_modifier)
     _id = int(_id)
     _amount = int(_amount)
 
@@ -302,7 +303,7 @@ def giveItem(_id, _amount):
         return
 
     # Give the items
-    playerMap[nextEmpty][0] = 0
+    playerMap[nextEmpty][0] = _modifier
     playerMap[nextEmpty][1] = 0
     playerMap[nextEmpty][2] = _id
     playerMap[nextEmpty][3] = _amount
@@ -376,7 +377,7 @@ def userPick():
         sortAll()
         print('[*] Sorted inventory and hotbar by ID.')
     elif command == 'give':
-        giveItem(args[0], args[1])
+        giveItem(args[0], args[1], args[2])
     elif command == 'done':
         print('[*] Exiting without writing.')
         return
