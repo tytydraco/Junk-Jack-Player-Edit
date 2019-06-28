@@ -16,6 +16,15 @@ KEY_TREASURES = 'treasures'
 KEY_ID = 'id'
 KEY_NAME = 'name'
 
+COMMAND_HELP = """
+write   - Write modified buffer to the player file.
+reload  - Scan and update the world and player data.
+mobile  - Move hotbar slots 6-10 to inventory for mobile transfer.
+sort    - Sort inventory and hotbar by ID.
+give    - Give the player [id] [amount].
+done    - Exit the editor.
+"""
+
 # Global Variables
 itemMap = {}
 playerMap = []
@@ -212,6 +221,10 @@ def moveFromHotbarToPlayer(slotsRange):
 
 # Give the player an item
 def giveItem(_id, _amount):
+    # Int checks and conversions
+    _id = int(_id)
+    _amount = int(_amount)
+
     # Scan for empty slots to utilize
     nextEmpty = findEmptyInventorySlot()
 
@@ -244,8 +257,15 @@ def sortAll():
             temp = hotMap.pop(hotMap.index(hotMap[i]))
             hotMap.append(temp)
 
-# The main function
-def main():
+def preChecks():
+    # Clear existing data
+    global itemMap
+    itemMap = {}
+    global playerMap
+    playerMap = []
+    global hotMap
+    hotMap = []
+
     # Make sure player file exists
     setPlayerFile()
 
@@ -260,20 +280,46 @@ def main():
     generatePlayerMap()
     print('[*] Player map generated.')
 
-    # Move last 4 hotbar items to inventory
-    moveFromHotbarToPlayer(range(6,10))
-    print('[*] Moved hotbar items for mobile compatibility.')
+# Keep asking the user for commands
+def userPick():
+    # Print help screen
+    print(COMMAND_HELP)
 
-    # Sort the inventory and hotbar
-    # sortAll()
+    # Get and parse user input
+    userIn = input("Choice: ").split(" ")
+    command = userIn[0]
+    args = userIn[1::]
+
+    if command == 'write':
+        writePlayerFile()
+        print("[*] Player file written.")
+    elif command == 'reload':
+        preChecks()
+        print("[*] Did pre-checks and regeneration.")
+    elif command == 'mobile':
+        moveFromHotbarToPlayer(range(6,10))
+        print('[*] Moved hotbar items for mobile compatibility.')
+    elif command == 'sort':
+        sortAll()
+        print('[*] Sorted inventory and hotbar by ID.')
+    elif command == 'give':
+        giveItem(args[0], args[1])
+    elif command == 'done':
+        print('[*] Exiting without writing.')
+        return
+    else:
+        print('[!] Bad command format!')
     
-    # Give the player an item
-    # ID: 256; Amount: 16
-    # giveItem(256, 16)
+    userPick()
 
-    # Write player map
-    writePlayerFile()
-    print("[*] Player file written.")
+# The main function
+def main():
+    # Check if everything exists and generate the maps
+    preChecks()
+    print("[*] Did pre-checks and regeneration.")
+
+    #  Begin selection loop
+    userPick()
 
 # Start the program
 main()
