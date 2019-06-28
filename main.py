@@ -3,9 +3,9 @@ import json
 import struct
 
 # Constants
-HEX_OFFSET_PLAYER_INIT = 0x1dc
+HEX_OFFSET_PLAYER_INIT = 0x1d8
 HEX_OFFSET_PLAYER_END = 0x383
-HEX_OFFSET_HOT_INIT = 0x80
+HEX_OFFSET_HOT_INIT = 0x7C
 HEX_OFFSET_HOT_END = 0xef
 
 ENGLISH_JSON = 'english.json'
@@ -24,6 +24,16 @@ sort    - Sort inventory and hotbar by ID.
 give    - Give the player [id] [amount].
 done    - Exit the editor.
 """
+
+# ITEM BYTES
+# TOTAL 12 BYTES
+# 2 modifier
+# 2 unknown
+# 2 id
+# 2 count
+# 2 durability
+# 1 renderer
+# 1 padding
 
 # Global Variables
 itemMap = {}
@@ -48,17 +58,19 @@ def readFile(path, mode):
 
 # Parse data chunk from player data
 def parseLittleEndian(data, i):
-    # Parse item ID with little endian hex (1 byte)
-    _id = struct.unpack('<h', data[i : i + 2])[0]
+    _modifier = struct.unpack('<h', data[i : i + 2])[0]
+    _unknown = struct.unpack('<h', data[i + 2 : i + 4])[0]
+    _id = struct.unpack('<h', data[i + 4 : i + 6])[0]
+    _amount = struct.unpack('<h', data[i + 6 : i + 8])[0]
+    _durability = struct.unpack('<h', data[i + 8 : i + 10])[0]
+    _renderer = struct.unpack('<b', data[i + 10 : i + 11])[0]
+    _padding = struct.unpack('<b', data[i + 11 : i + 12])[0]
 
-    # An empty slot is ID 0
+    # Empty slot check
     if _id is -1:
         _id = 0
 
-    # Parse item ID with little endian hex (2 bytes)
-    _amount = struct.unpack('<hh', data[i + 2 : i + 6])[0]
-
-    return (_id, _amount)
+    return (_modifier, _unknown, _id, _amount, _durability, _renderer, _padding)
 
 # Check if our item map exists
 def verifyEnglishJSON():
@@ -118,15 +130,15 @@ def generatePlayerMap():
     # Loop over hex
     for i in range(HEX_OFFSET_PLAYER_INIT, HEX_OFFSET_PLAYER_END, 12):
         # Parse using little endian
-        (_id, _amount) = parseLittleEndian(playerData, i)
-        playerMap.append([_id, _amount])
+        (_modifier, _unknown, _id, _amount, _durability, _renderer, _padding) = parseLittleEndian(playerData, i)
+        playerMap.append([_modifier, _unknown, _id, _amount, _durability, _renderer, _padding])
         print('[*] Appended entry "%s" [%d] : %s' % (itemMap[_id], _id, _amount))
 
     # Loop over hex
     for i in range(HEX_OFFSET_HOT_INIT, HEX_OFFSET_HOT_END, 12):
         # Parse using little endian
-        (_id, _amount) = parseLittleEndian(playerData, i)
-        hotMap.append([_id, _amount])
+        (_modifier, _unknown, _id, _amount, _durability, _renderer, _padding) = parseLittleEndian(playerData, i)
+        hotMap.append([_modifier, _unknown, _id, _amount, _durability, _renderer, _padding])
         print('[*] Appended entry "%s" [%d] : %s' % (itemMap[_id], _id, _amount))
 
 # Write data to player file
@@ -144,19 +156,39 @@ def writePlayerFile():
     mapIndex = 0
     for i in range(HEX_OFFSET_PLAYER_INIT, HEX_OFFSET_PLAYER_END, 12):
         # Loop sequentially
-        _id = playerMap[mapIndex][0]
-        _amount = playerMap[mapIndex][1]
+        _modifier = playerMap[mapIndex][0]
+        _unknown = playerMap[mapIndex][1]
+        _id = playerMap[mapIndex][2]
+        _amount = playerMap[mapIndex][3]
+        _durability = playerMap[mapIndex][4]
+        _renderer = playerMap[mapIndex][5]
+        _padding = playerMap[mapIndex][6]
         mapIndex += 1
 
         # Convert to little endian
+        _raw_modifier = struct.pack('<h', _modifier)
+        _raw_unknown = struct.pack('<h', _unknown)
         _raw_id = struct.pack('<h', _id)
         _raw_amount = struct.pack('<h', _amount)
+        _raw_durability = struct.pack('<h', _durability)
+        _raw_renderer = struct.pack('<b', _renderer)
+        _raw_padding = struct.pack('<b', _padding)
 
         # Write to player data
         f.seek(i)
-        f.write(_raw_id)
+        f.write(_raw_modifier)
         f.seek(i + 2)
+        f.write(_raw_unknown)
+        f.seek(i + 4)
+        f.write(_raw_id)
+        f.seek(i + 6)
         f.write(_raw_amount)
+        f.seek(i + 8)
+        f.write(_raw_durability)
+        f.seek(i + 10)
+        f.write(_raw_renderer)
+        f.seek(i + 11)
+        f.write(_raw_padding)
 
         print('[*] Wrote entry "%s" [%s] : %s' % (itemMap[_id], _raw_id, _raw_amount))
 
@@ -164,19 +196,40 @@ def writePlayerFile():
     mapIndex = 0
     for i in range(HEX_OFFSET_HOT_INIT, HEX_OFFSET_HOT_END, 12):
         # Loop sequentially
-        _id = hotMap[mapIndex][0]
-        _amount = hotMap[mapIndex][1]
+        _modifier = hotMap[mapIndex][0]
+        _unknown = hotMap[mapIndex][1]
+        _id = hotMap[mapIndex][2]
+        _amount = hotMap[mapIndex][3]
+        _durability = hotMap[mapIndex][4]
+        _renderer = hotMap[mapIndex][5]
+        _padding = hotMap[mapIndex][6]
         mapIndex += 1
 
         # Convert to little endian
+        _raw_modifier = struct.pack('<h', _modifier)
+        _raw_unknown = struct.pack('<h', _unknown)
         _raw_id = struct.pack('<h', _id)
         _raw_amount = struct.pack('<h', _amount)
+        _raw_durability = struct.pack('<h', _durability)
+        _raw_renderer = struct.pack('<b', _renderer)
+        _raw_padding = struct.pack('<b', _padding)
 
         # Write to player data
         f.seek(i)
-        f.write(_raw_id)
+        f.write(_raw_modifier)
         f.seek(i + 2)
+        f.write(_raw_unknown)
+        f.seek(i + 4)
+        f.write(_raw_id)
+        f.seek(i + 6)
         f.write(_raw_amount)
+        f.seek(i + 8)
+        f.write(_raw_durability)
+        f.seek(i + 10)
+        f.write(_raw_renderer)
+        f.seek(i + 11)
+        f.write(_raw_padding)
+
         print('[*] Wrote entry "%s" [%s] : %s' % (itemMap[_id], _raw_id, _raw_amount))
 
     f.close()
@@ -194,8 +247,13 @@ def findEmptyInventorySlot():
 def moveFromHotbarToPlayer(slotsRange):
     for i in slotsRange:
         # Loop sequentially
-        _id = hotMap[i][0]
-        _amount = hotMap[i][1]
+        _modifier = hotMap[i][0]
+        _unknown = hotMap[i][1]
+        _id = hotMap[i][2]
+        _amount = hotMap[i][3]
+        _durability = hotMap[i][4]
+        _renderer = hotMap[i][5]
+        _padding = hotMap[i][6]
 
         # No need to move an empty slot
         if _id is 0:
@@ -210,12 +268,22 @@ def moveFromHotbarToPlayer(slotsRange):
             return
 
         # Give the items
-        playerMap[nextEmpty][0] = _id
-        playerMap[nextEmpty][1] = _amount
-
+        playerMap[nextEmpty][0] = _modifier
+        playerMap[nextEmpty][1] = _unknown
+        playerMap[nextEmpty][2] = _id
+        playerMap[nextEmpty][3] = _amount
+        playerMap[nextEmpty][4] = _durability
+        playerMap[nextEmpty][5] = _renderer
+        playerMap[nextEmpty][5] = _padding
+        
         # Clear emptied slots
         hotMap[i][0] = 0
         hotMap[i][1] = 0
+        hotMap[i][2] = 0
+        hotMap[i][3] = 0
+        hotMap[i][4] = 0
+        hotMap[i][5] = 0
+        hotMap[i][6] = 0
 
         print('[*] Moved "%s" [%s] : %s to inventory.' % (itemMap[_id], _id, _amount))
 
@@ -233,9 +301,14 @@ def giveItem(_id, _amount):
         print('[!] No empty slots left!')
         return
 
-     # Give the items
-    playerMap[nextEmpty][0] = _id
-    playerMap[nextEmpty][1] = _amount
+    # Give the items
+    playerMap[nextEmpty][0] = 0
+    playerMap[nextEmpty][1] = 0
+    playerMap[nextEmpty][2] = _id
+    playerMap[nextEmpty][3] = _amount
+    playerMap[nextEmpty][4] = 0
+    playerMap[nextEmpty][5] = 0
+    playerMap[nextEmpty][5] = 0
 
     print('[*] Gave "%s" [%s] : %s to inventory.' % (itemMap[_id], _id, _amount))
 
@@ -247,13 +320,13 @@ def sortAll():
 
     # Move empty player slots to the end
     for i in range(len(playerMap)):
-        if playerMap[i][0] is 0:
+        if playerMap[i][3] is 0:
             temp = playerMap.pop(playerMap.index(playerMap[i]))
             playerMap.append(temp)
     
     # Move empty hotbar slots to the end
     for i in range(len(hotMap)):
-        if hotMap[i][0] is 0:
+        if hotMap[i][3] is 0:
             temp = hotMap.pop(hotMap.index(hotMap[i]))
             hotMap.append(temp)
 
