@@ -237,7 +237,7 @@ def writePlayerFile():
 def findEmptyInventorySlot():
     # Scan for empty slots to utilize
     for i in range(0, len(playerMap)):
-        if playerMap[i][3] is 0:
+        if playerMap[i][2] is 0:
             return i
 
     # No empty slots. Abort!
@@ -321,13 +321,13 @@ def sortAll():
 
     # Move empty player slots to the end
     for i in range(len(playerMap)):
-        if playerMap[i][3] is 0:
+        if playerMap[i][2] is 0:
             temp = playerMap.pop(playerMap.index(playerMap[i]))
             playerMap.append(temp)
     
     # Move empty hotbar slots to the end
     for i in range(len(hotMap)):
-        if hotMap[i][3] is 0:
+        if hotMap[i][2] is 0:
             temp = hotMap.pop(hotMap.index(hotMap[i]))
             hotMap.append(temp)
 
